@@ -7,31 +7,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "href",
-    "items",
-    "limit",
-    "next",
-    "offset",
-    "previous",
-    "total"
-})
 
 public class Tracks {
 
     @JsonProperty("href")
     private String href;
-    @JsonProperty("items")
 
+    @JsonProperty("items")
     private List<Object> items;
+
     @JsonProperty("limit")
     private Integer limit;
+
     @JsonProperty("next")
     private Object next;
+
     @JsonProperty("offset")
     private Integer offset;
+
     @JsonProperty("previous")
     private Object previous;
+
     @JsonProperty("total")
     private Integer total;
 

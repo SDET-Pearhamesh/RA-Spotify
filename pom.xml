@@ -39,5 +39,11 @@
       <version>5.5.5</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>3.0</version>
+    </dependency>
+
   </dependencies>
 </project>
