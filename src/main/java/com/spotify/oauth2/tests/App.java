@@ -1,4 +1,4 @@
-package com.spotify.api.automation;
+package com.spotify.oauth2.tests;
 
 /**
  * Hello world!
