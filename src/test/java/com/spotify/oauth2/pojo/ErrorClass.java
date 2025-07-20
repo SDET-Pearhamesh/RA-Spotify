@@ -4,19 +4,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ErrorRoot {
+public class ErrorClass {
 
 
         @JsonProperty("error")
-        private Error error;
+        private InnerError error;
 
         @JsonProperty("error")
-        public Error getError() {
+        public InnerError getError() {
             return error;
         }
 
         @JsonProperty("error")
-        public void setError(Error error) {
+        public void setError(InnerError error) {
             this.error = error;
         }
 

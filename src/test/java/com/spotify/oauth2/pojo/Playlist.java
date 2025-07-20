@@ -69,8 +69,9 @@ public class Playlist {
     }
 
     @JsonProperty("description")
-    public void setDescription(String description) {
+    public Playlist setDescription(String description) {
         this.description = description;
+        return this;
     }
 
     @JsonProperty("external_urls")
@@ -129,8 +130,9 @@ public class Playlist {
     }
 
     @JsonProperty("name")
-    public void setName(String name) {
+    public Playlist setName(String name) {
         this.name = name;
+        return this;
     }
 
     @JsonProperty("owner")
@@ -159,8 +161,9 @@ public class Playlist {
     }
 
     @JsonProperty("public")
-    public void setPublic(Boolean _public) {
+    public Playlist setPublic(Boolean _public) {
         this._public = _public;
+        return this;
     }
 
     @JsonProperty("snapshot_id")

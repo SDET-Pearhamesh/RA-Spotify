@@ -1,13 +1,18 @@
 package com.spotify.oauth2.tests;
 
+import com.spotify.oauth2.Utils.PlaylistAPI;
+import com.spotify.oauth2.api.SpecBuilder;
+import com.spotify.oauth2.pojo.ErrorClass;
 import com.spotify.oauth2.pojo.Playlist;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.filter.log.LogDetail;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.hamcrest.Matchers.*;
-
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -15,31 +20,19 @@ import static org.hamcrest.Matchers.equalTo;
 public class PlaylistTests {
 
 
-    RequestSpecification requestSpecification;
-    ResponseSpecification responseSpecification;
-
-
-@BeforeTest
-    public void setup(){
-
-
-}
-
-@Test(description = "This method is used to verify the authenticated user can create a playlist")
+@Test(description = "This method is used to verify the authenticated user can create a playlist" , priority = 1)
 public void createPlaylist(){
 
-    Playlist requestPlaylist = new Playlist();
-    requestPlaylist.setName("REST ASSURED PLAYLIST");
-    requestPlaylist.setDescription("This playlist is created using REST Assured");
-    requestPlaylist.setPublic(false);
+    Playlist requestPlaylist = new Playlist().
+            setName("REST ASSURED PLAYLIST").
+            setDescription("This playlist is created using REST Assured").
+            setPublic(false);
 
-   Playlist responseCreatePlaylist = given(requestSpecification).
-            body(requestPlaylist).
-        when().
-            post("/sdd").
-        then().spec(responseSpecification).
-            assertThat().statusCode(201).
-            extract().response().as(Playlist.class);
+    Response response = PlaylistAPI.post(requestPlaylist);
+
+    Playlist responseCreatePlaylist = response.as(Playlist.class);  // DESERIALIZATION
+
+    assertThat(response.statusCode() , equalTo(201));
 
    assertThat(responseCreatePlaylist.getName() , equalTo(requestPlaylist.getName()));
    assertThat(responseCreatePlaylist.getDescription() , equalTo(requestPlaylist.getDescription()));
@@ -47,44 +40,38 @@ public void createPlaylist(){
 
 }
 
-    @Test(description = "This method is used to verify the authenticated user can get newly created playlist")
-    public void getPlaylist(){
 
-        Playlist requestPlaylist = new Playlist();
-        requestPlaylist.setName("REST ASSURED PLAYLIST");
-        requestPlaylist.setDescription("This playlist is created using REST Assured");
-        requestPlaylist.setPublic(false);
 
-        Playlist responseCreatePlaylist =
-
-        given(requestSpecification).
-        when().
-                get("/sdd").
-        then().spec(responseSpecification).
-                assertThat().statusCode(200).
-                extract().response().as(Playlist.class);
-
-        assertThat(responseCreatePlaylist.getName() , equalTo(requestPlaylist.getName()));
-        assertThat(responseCreatePlaylist.getDescription() , equalTo(requestPlaylist.getDescription()));
-        assertThat(responseCreatePlaylist.getPublic() , equalTo(requestPlaylist.getPublic()));
-
-    }
-
-    @Test(description = "This method is used to verify the authenticated user can update a playlist")
+    @Test(description = "This method is used to verify the authenticated user can update a playlist" , priority = 2)
     public void updatePlaylist(){
 
-        Playlist requestPlaylist = new Playlist();
-        requestPlaylist.setName("REST ASSURED UPDATED PLAYLIST NAME");
-        requestPlaylist.setDescription("This playlist is updated using REST Assured");
-        requestPlaylist.setPublic(false);
+        String PlaylistID = "";
+    
+        Playlist requestPlaylist = new Playlist().
+                setName("REST ASSURED UPDATED PLAYLIST NAME").
+                setDescription("This playlist is updated using REST Assured").
+                setPublic(false);
 
-        Playlist responseCreatePlaylist = given(requestSpecification).
-                body(requestPlaylist).
-                when().
-                post("/sdd").
-                then().spec(responseSpecification).
-                assertThat().statusCode(201).
-                extract().response().as(Playlist.class);
+        Response response = PlaylistAPI.update(requestPlaylist , PlaylistID);
+        assertThat(response.statusCode() , equalTo(200));
+
+
+
+    }
+
+    @Test(description = "This method is used to verify the authenticated user can get newly created playlist" , priority = 3)
+    public void getPlaylist(){
+
+        Playlist requestPlaylist = new Playlist().
+                setName("REST ASSURED UPDATED PLAYLIST NAME").
+                setDescription("This playlist is updated using REST Assured").
+                setPublic(false);
+
+        String PlaylistID = "";
+
+        Response response = PlaylistAPI.get(PlaylistID);
+
+        Playlist responseCreatePlaylist = response.as(Playlist.class);  // DESERIALIZATION
 
         assertThat(responseCreatePlaylist.getName() , equalTo(requestPlaylist.getName()));
         assertThat(responseCreatePlaylist.getDescription() , equalTo(requestPlaylist.getDescription()));
@@ -92,68 +79,52 @@ public void createPlaylist(){
 
     }
 
-    @Test(description = "This method is used to verify the authenicated user can update a playlist")
-    public void invalidToCreatePlaylist(){
+    @Test(description = "This method is used to verify the authenticated user can create a playlist with empty name" , priority = 4)
+    public void noNameToCreatePlaylist(){
 
-        Playlist requestPlaylist = new Playlist();
-        requestPlaylist.setName("REST ASSURED UPDATED PLAYLIST NAME");
-        requestPlaylist.setDescription("This playlist is updated using REST Assured");
-        requestPlaylist.setPublic(false);
+        Playlist requestPlaylist = new Playlist().
+                setName("REST ASSURED UPDATED PLAYLIST NAME").
+                setDescription("This playlist is updated using REST Assured").
+                setPublic(false);
 
-        Playlist responseCreatePlaylist = given(requestSpecification).
-                body(requestPlaylist).
-                when().
-                post("/sdd").
-                then().spec(responseSpecification).
-                assertThat().statusCode(201).
-                extract().response().as(Playlist.class);
+        Response response = PlaylistAPI.post(requestPlaylist);
+        ErrorClass error  = response.as(ErrorClass.class);
 
-        assertThat(responseCreatePlaylist.getName() , equalTo(requestPlaylist.getName()));
-        assertThat(responseCreatePlaylist.getDescription() , equalTo(requestPlaylist.getDescription()));
-        assertThat(responseCreatePlaylist.getPublic() , equalTo(requestPlaylist.getPublic()));
 
+       assertThat(error.getError().getStatus() , equalTo(400));
+       assertThat(error.getError().getMessage() , equalTo("Missing required field: name"));
     }
 
-    @Test(description = "This method is used to verify the authenicated user can update a playlist")
-    public void createPlaylistUsingExpiredToken(){
+    @Test(description = "This method is used to verify with invalid token too create a playlist" , priority = 5)
+    public void expiredTokenToCreatePlaylist(){
 
-        Playlist requestPlaylist = new Playlist();
-        requestPlaylist.setName("REST ASSURED UPDATED PLAYLIST NAME");
-        requestPlaylist.setDescription("This playlist is updated using REST Assured");
-        requestPlaylist.setPublic(false);
+        Playlist requestPlaylist = new Playlist().
+                setName("REST ASSURED UPDATED PLAYLIST NAME").
+                setDescription("This playlist is updated using REST Assured").
+                setPublic(false);
 
-        Playlist responseCreatePlaylist = given(requestSpecification).
-                body(requestPlaylist).
-                when().
-                post("/sdd").
-                then().spec(responseSpecification).
-                assertThat().statusCode(401).
-                extract().response().as(Playlist.class);
+        String PlaylistID = "";
+        Response response = PlaylistAPI.post(requestPlaylist , PlaylistID);
+        ErrorClass error  = response.as(ErrorClass.class);
 
-        assertThat(responseCreatePlaylist.getName() , equalTo(requestPlaylist.getName()));
-        assertThat(responseCreatePlaylist.getDescription() , equalTo(requestPlaylist.getDescription()));
-        assertThat(responseCreatePlaylist.getPublic() , equalTo(requestPlaylist.getPublic()));
+        assertThat(error.getError().getStatus() , equalTo(401));
+        assertThat(error.getError().getMessage() , equalTo("Invalid access token"));
 
     }
 
 
-
-
-    @Test(description = "This method is used to verify the authenticated user can delete a playlist")
+    @Test(description = "This method is used to verify the authenticated user can delete a playlist" , priority = 6)
     public void deletePlaylist(){
 
-        Playlist requestPlaylist = new Playlist();
-        requestPlaylist.setName("REST ASSURED PLAYLIST");
-        requestPlaylist.setDescription("This playlist is created using REST Assured");
-        requestPlaylist.setPublic(false);
+        Playlist requestPlaylist = new Playlist().
+                setName("REST ASSURED UPDATED PLAYLIST NAME").
+                setDescription("This playlist is updated using REST Assured").
+                setPublic(false);
 
-        Playlist responseCreatePlaylist = given(requestSpecification).
-                body(requestPlaylist).
-                when().
-                post("/sdd").
-                then().spec(responseSpecification).
-                assertThat().statusCode(201).
-                extract().response().as(Playlist.class);
+        String PlaylistID = "";
+        Response response = PlaylistAPI.get(PlaylistID);
+
+        Playlist responseCreatePlaylist = response.as(Playlist.class);  // DESERIALIZATION
 
         assertThat(responseCreatePlaylist.getName() , equalTo(requestPlaylist.getName()));
         assertThat(responseCreatePlaylist.getDescription() , equalTo(requestPlaylist.getDescription()));
