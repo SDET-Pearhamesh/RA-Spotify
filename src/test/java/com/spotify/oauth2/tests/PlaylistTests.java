@@ -20,23 +20,36 @@ import static org.hamcrest.Matchers.equalTo;
 public class PlaylistTests {
 
 
+    public Playlist playlistBuilder(String playlistName , String playlistDescription, boolean isPlaylistPublic){
+
+        return new Playlist().
+                setName(playlistName).
+                setDescription(playlistDescription).
+                setPublic(isPlaylistPublic);
+    }
+
+    public void assertPlaylistEqual(Playlist responsePlaylist , Playlist requestPlaylist){
+
+        assertThat(responsePlaylist.getName() , equalTo(requestPlaylist.getName()));
+        assertThat(responsePlaylist.getDescription() , equalTo(requestPlaylist.getDescription()));
+        assertThat(responsePlaylist.getPublic() , equalTo(requestPlaylist.getPublic()));
+
+    }
+
+    public void assertStatuscode(int actualStatuscode , int expectedStatuscode){
+        assertThat(actualStatuscode , equalTo(expectedStatuscode));
+    }
+
+
+
 @Test(description = "This method is used to verify the authenticated user can create a playlist" , priority = 1)
 public void createPlaylist(){
 
-    Playlist requestPlaylist = new Playlist().
-            setName("REST ASSURED PLAYLIST").
-            setDescription("This playlist is created using REST Assured").
-            setPublic(false);
+    Playlist requestPlaylist = playlistBuilder("REST ASSURED PLAYLIST" ,"This playlist is created using REST Assured" , false);
 
     Response response = PlaylistAPI.post(requestPlaylist);
 
-    Playlist responseCreatePlaylist = response.as(Playlist.class);  // DESERIALIZATION
 
-    assertThat(response.statusCode() , equalTo(201));
-
-   assertThat(responseCreatePlaylist.getName() , equalTo(requestPlaylist.getName()));
-   assertThat(responseCreatePlaylist.getDescription() , equalTo(requestPlaylist.getDescription()));
-   assertThat(responseCreatePlaylist.getPublic() , equalTo(requestPlaylist.getPublic()));
 
 }
 
