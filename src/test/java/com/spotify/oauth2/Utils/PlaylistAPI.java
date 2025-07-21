@@ -4,6 +4,8 @@ import com.spotify.oauth2.api.Routes;
 import com.spotify.oauth2.api.SpecBuilder;
 import com.spotify.oauth2.api.TokenManager;
 import com.spotify.oauth2.pojo.Playlist;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import io.restassured.response.Response;
 
 import java.io.BufferedReader;
@@ -18,13 +20,13 @@ import static io.restassured.RestAssured.given;
 public class PlaylistAPI {
 
 
-    public static Response post(Playlist requestPlaylist) {
+    public static Response post(Playlist requestPlaylist) throws FileNotFoundException {
 
         return given(SpecBuilder.getRequestSpec()).
                 body(requestPlaylist).
-                header("Authorization", "Bearer " + TokenManager.getToken()).
+                auth().oauth2(TokenManager.getToken()).
                 when().
-                post(Routes.USERS + "/sdd" + Routes.PLAYLISTS).   // Need to add endpoint
+                post( Routes.USERS + "/31uybx2xzlsvo6kskyxhgezb4aqe" + Routes.PLAYLISTS).   // value is hard coded, need to change this
                         then().spec(SpecBuilder.getResponseSpec()).
                 extract().response();
 
@@ -34,9 +36,9 @@ public class PlaylistAPI {
 
         return given(SpecBuilder.getRequestSpec()).
                 body(requestPlaylist).
-                header("Authorization", "Bearer " + TokenManager.getToken()).
+                auth().oauth2(TokenManager.getToken()).
                 when().
-                post(Routes.USERS + "/sdd" + Routes.PLAYLISTS).   // Need to add endpoint
+                post(Routes.USERS + "/sdd" + Routes.PLAYLISTS).
                         then().spec(SpecBuilder.getResponseSpec()).
                 extract().response();
 
@@ -45,7 +47,7 @@ public class PlaylistAPI {
     public static Response get(String PlaylistID) {
 
         return given(SpecBuilder.getRequestSpec()).
-                header("Authorization", "Bearer " + TokenManager.getToken()).
+                auth().oauth2(TokenManager.getToken()).
                 when().
                 get(Routes.PLAYLISTS + "/sendid").
                 then().spec(SpecBuilder.getResponseSpec()).
@@ -59,7 +61,7 @@ public class PlaylistAPI {
 
         return given(SpecBuilder.getRequestSpec()).
                 body(requestPlaylist).
-                header("Authorization", "Bearer " + TokenManager.getToken()).
+                auth().oauth2(TokenManager.getToken()).
                 when().
                 put(Routes.PLAYLISTS + "/sendid").
                 then().spec(SpecBuilder.getResponseSpec()).
@@ -72,9 +74,9 @@ public class PlaylistAPI {
         return given(SpecBuilder.getAccountRequestSpec()).
                 baseUri("https://accounts.spotify.com").
                 formParams(formParams).
-                when().
+        when().
                 post(Routes.API + Routes.TOKEN).
-                then().
+        then().
                 spec(SpecBuilder.getResponseSpec()).
                 extract().
                 response();

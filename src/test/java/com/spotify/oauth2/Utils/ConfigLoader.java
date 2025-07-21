@@ -12,7 +12,7 @@ public class ConfigLoader {
         properties = PropertyUtil.propertyLoader("src/test/resources/config.properties");
     }
 
-    public static ConfigLoader getInstance() throws FileNotFoundException {
+    public static ConfigLoader getInstance(String userId) throws FileNotFoundException {
 
         if(configLoader == null){
             configLoader = new ConfigLoader();

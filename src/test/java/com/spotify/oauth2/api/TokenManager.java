@@ -2,7 +2,6 @@ package com.spotify.oauth2.api;
 
 import com.spotify.oauth2.Utils.ConfigLoader;
 import com.spotify.oauth2.Utils.PlaylistAPI;
-import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
 import java.io.FileNotFoundException;
@@ -10,14 +9,13 @@ import java.time.Instant;
 import java.util.HashMap;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
 
 public class TokenManager {
 
     private static String access_token;
     private static Instant expiry_time;
 
-    public static String getToken(){
+    public synchronized static String getToken(){
 
         try {
 
@@ -27,7 +25,7 @@ public class TokenManager {
                 Response response = renewToken();
                 access_token = response.path("access_token");
 
-                long expiryDurationInSeconds = response.path("expires_in");
+                int expiryDurationInSeconds = response.path("expires_in");
                 expiry_time = Instant.now().plusSeconds(expiryDurationInSeconds - 300);
             }
             else {
@@ -44,10 +42,10 @@ public class TokenManager {
     private static Response renewToken() throws FileNotFoundException {
 
         HashMap<String , String> formParams = new HashMap<String , String>();
-        formParams.put("client_id" , ConfigLoader.getInstance().getClientID());
-        formParams.put("client_secret" , ConfigLoader.getInstance().getClientSecrete() );
-        formParams.put("grant_type" , ConfigLoader.getInstance().getGrantType());
-        formParams.put("refresh_token" , ConfigLoader.getInstance().getRefreshToken());
+        formParams.put("client_id" , ConfigLoader.getInstance("user_id").getClientID());
+        formParams.put("client_secret" , ConfigLoader.getInstance("user_id").getClientSecrete() );
+        formParams.put("grant_type" , ConfigLoader.getInstance("user_id").getGrantType());
+        formParams.put("refresh_token" , ConfigLoader.getInstance("user_id").getRefreshToken());
 
        Response response =  PlaylistAPI.postAccount(formParams);
 

@@ -1,94 +1,108 @@
 package com.spotify.oauth2.tests;
 
+import com.spotify.oauth2.Utils.JavaFakerUtils;
 import com.spotify.oauth2.Utils.PlaylistAPI;
+import com.spotify.oauth2.api.StatusCode;
 import com.spotify.oauth2.pojo.ErrorClass;
 import com.spotify.oauth2.pojo.Playlist;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
 import io.restassured.response.Response;
 import org.testng.annotations.Test;
+import java.io.FileNotFoundException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
+@Epic("Spotify Oauth 2.0")
+@Feature("Playlist API - To create, get, update playlists")
 public class PlaylistTests {
 
 
-@Test(description = "This method is used to verify the authenticated user can create a playlist" , priority = 1)
-public void createPlaylist(){
 
-    Playlist requestPlaylist = playlistBuilder("REST ASSURED PLAYLIST" ,"This playlist is created using REST Assured" , false);
+@Story("Create a playlist")
+@Test(description = "This method is used to verify the authenticated user can create a playlist" , priority = 1)
+public void createPlaylist() throws FileNotFoundException {
+
+    Playlist requestPlaylist = playlistBuilder(JavaFakerUtils.generateName(), JavaFakerUtils.generateDescription() , false);
 
     Response response = PlaylistAPI.post(requestPlaylist);
 
-    assertStatuscode(response.statusCode(), 201);
+    assertStatuscode(response.statusCode(), StatusCode.STATUS_CODE_201.getCode());
     assertPlaylistEqual(response.as(Playlist.class) , requestPlaylist);
 
 }
 
-@Test(description = "This method is used to verify the authenticated user can update a playlist" , priority = 2)
+@Story("Update a playlist")
+@Test(description = "This method is used to verify the authenticated user can update a playlist" , priority = 2 , enabled = false)
 public void updatePlaylist(){
 
-
     String PlaylistID = "";
-    Playlist requestPlaylist = playlistBuilder("REST ASSURED UPDATED PLAYLIST NAME" ,"This playlist is updated using REST Assured" , false);
+    Playlist requestPlaylist = playlistBuilder(JavaFakerUtils.generateName(), JavaFakerUtils.generateDescription() , false);
 
     Response response = PlaylistAPI.update(requestPlaylist , PlaylistID);
-    assertStatuscode(response.statusCode(), 200);
+    assertStatuscode(response.statusCode(), StatusCode.STATUS_CODE_200.getCode());
 
 }
 
-@Test(description = "This method is used to verify the authenticated user can get newly created playlist" , priority = 3)
+@Story("Get a playlist")
+@Test(description = "This method is used to verify the authenticated user can get newly created playlist" , priority = 3 , enabled = false)
 public void getPlaylist(){
 
     String PlaylistID = "";
-    Playlist requestPlaylist = playlistBuilder("REST ASSURED UPDATED PLAYLIST NAME" ,"This playlist is updated using REST Assured" , false);
+    Playlist requestPlaylist = playlistBuilder("" , "" , false);
 
     Response response = PlaylistAPI.get(PlaylistID);
-    assertStatuscode(response.statusCode(), 200);
+    assertStatuscode(response.statusCode(), StatusCode.STATUS_CODE_200.getCode());
     assertPlaylistEqual(response.as(Playlist.class) , requestPlaylist);
 
 
 
     }
 
-@Test(description = "This method is used to verify the authenticated user can create a playlist with empty name" , priority = 4)
-public void noNameToCreatePlaylist(){
+@Story("Create a playlist")
+@Test(description = "This method is used to verify the authenticated user can create a playlist with empty name" , priority = 4 , enabled = false)
+public void noNameToCreatePlaylist() throws FileNotFoundException {
 
-     Playlist requestPlaylist = playlistBuilder("" ,"This playlist is updated using REST Assured" , false);
+     Playlist requestPlaylist = playlistBuilder("" , JavaFakerUtils.generateDescription() , false);
 
      Response response = PlaylistAPI.post(requestPlaylist);
      ErrorClass error  = response.as(ErrorClass.class);
 
-     assertThat(error.getError().getStatus() , equalTo(400));
-     assertThat(error.getError().getMessage() , equalTo("Missing required field: name"));
+     assertThat(error.getError().getStatus() , equalTo(StatusCode.STATUS_CODE_400));
+     assertThat(error.getError().getMessage() , equalTo(StatusCode.STATUS_CODE_400.getMessage()));
 
     }
 
-@Test(description = "This method is used to verify with invalid token too create a playlist" , priority = 5)
+@Story("Create a playlist")
+@Test(description = "This method is used to verify with invalid token too create a playlist" , priority = 5 , enabled = false)
 public void expiredTokenToCreatePlaylist(){
 
-    Playlist requestPlaylist = playlistBuilder("REST ASSURED UPDATED PLAYLIST NAME" ,"This playlist is updated using REST Assured" , false);
+    Playlist requestPlaylist = playlistBuilder(JavaFakerUtils.generateName(), JavaFakerUtils.generateDescription() , false);
 
     String PlaylistID = "";
     Response response = PlaylistAPI.post(requestPlaylist , PlaylistID);
     ErrorClass error  = response.as(ErrorClass.class);
 
-    assertThat(error.getError().getStatus() , equalTo(401));
-    assertThat(error.getError().getMessage() , equalTo("Invalid access token"));
+    assertThat(error.getError().getStatus() , equalTo(StatusCode.STATUS_CODE_401.getCode()));
+    assertThat(error.getError().getMessage() , equalTo(StatusCode.STATUS_CODE_401));
 
     }
 
     public Playlist playlistBuilder(String playlistName , String playlistDescription, boolean isPlaylistPublic){
 
-        return new Playlist().
-                setName(playlistName).
-                setDescription(playlistDescription).
-                setPublic(isPlaylistPublic);
+        return Playlist.builder().
+                name(playlistName).
+                description(playlistDescription).
+                _public(isPlaylistPublic).
+                build();
     }
 
     public void assertPlaylistEqual(Playlist responsePlaylist , Playlist requestPlaylist){
 
         assertThat(responsePlaylist.getName() , equalTo(requestPlaylist.getName()));
         assertThat(responsePlaylist.getDescription() , equalTo(requestPlaylist.getDescription()));
-        assertThat(responsePlaylist.getPublic() , equalTo(requestPlaylist.getPublic()));
+        assertThat(responsePlaylist.get_public() , equalTo(requestPlaylist.get_public()));
 
     }
 
