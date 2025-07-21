@@ -71,7 +71,7 @@ public void getPlaylist(){
 
 
 @Story("Create a playlist")
-@Test(description = "This method is used to verify the authenticated user can create a playlist with empty name" , priority = 4 )
+@Test(description = "This method is used to verify the authenticated user cant create a playlist with empty name" , priority = 4 )
 public void noNameToCreatePlaylist() throws FileNotFoundException {
 
      Playlist requestPlaylist = playlistBuilder("" , JavaFakerUtils.generateDescription() , false);
@@ -86,7 +86,7 @@ public void noNameToCreatePlaylist() throws FileNotFoundException {
 
 
 @Story("Create a playlist")
-@Test(description = "This method is used to verify with invalid token too create a playlist" , priority = 5 )
+@Test(description = "This method is used to verify with expired token to create a playlist" , priority = 5 )
 public void expiredTokenToCreatePlaylist() throws FileNotFoundException {
 
     Playlist requestPlaylist = playlistBuilder(JavaFakerUtils.generateName(), JavaFakerUtils.generateDescription() , false);

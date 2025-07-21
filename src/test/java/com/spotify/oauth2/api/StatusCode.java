@@ -6,7 +6,7 @@ public enum StatusCode {
     STATUS_CODE_200(200, ""),
     STATUS_CODE_201(201, ""),
     STATUS_CODE_400(400, "Missing required field: name"),
-    STATUS_CODE_401(401, "Invalid access token");
+    STATUS_CODE_401(401, "The access token expired");
 
     private final int code;
     private final String message;
