@@ -16,7 +16,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 @Epic("Spotify Oauth 2.0")
 @Feature("Playlist API - To create, get, update playlists")
-public class PlaylistTests {
+public class PlaylistTests extends BaseTest {
 
 
 
