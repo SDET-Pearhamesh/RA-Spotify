@@ -6,6 +6,7 @@ import com.spotify.oauth2.api.TokenManager;
 import com.spotify.oauth2.pojo.Playlist;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
+import io.restassured.config.LogConfig;
 import io.restassured.response.Response;
 
 import java.io.BufferedReader;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Properties;
 
+import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given;
 
 public class PlaylistAPI {
@@ -25,21 +27,23 @@ public class PlaylistAPI {
         return given(SpecBuilder.getRequestSpec()).
                 body(requestPlaylist).
                 auth().oauth2(TokenManager.getToken()).
-                when().
-                post( Routes.USERS + "/31uybx2xzlsvo6kskyxhgezb4aqe" + Routes.PLAYLISTS).   // value is hard coded, need to change this
-                        then().spec(SpecBuilder.getResponseSpec()).
+                config(config.logConfig(LogConfig.logConfig().blacklistHeader("access_token"))).
+        when().
+                post( Routes.USERS + Routes.USER_ID + Routes.PLAYLISTS).
+        then().spec(SpecBuilder.getResponseSpec()).
                 extract().response();
 
     }
 
-    public static Response post(Playlist requestPlaylist, String invalidToken) {
+    public static Response post(Playlist requestPlaylist, String invalidToken) throws FileNotFoundException {
 
         return given(SpecBuilder.getRequestSpec()).
                 body(requestPlaylist).
-                auth().oauth2(TokenManager.getToken()).
-                when().
-                post(Routes.USERS + "/sdd" + Routes.PLAYLISTS).
-                        then().spec(SpecBuilder.getResponseSpec()).
+                auth().oauth2(ConfigLoader.getInstance("user_id").getExpiredToken()).
+                config(config.logConfig(LogConfig.logConfig().blacklistHeader("access_token"))).
+        when().
+                post(Routes.USERS + Routes.USER_ID + Routes.PLAYLISTS).
+        then().spec(SpecBuilder.getResponseSpec()).
                 extract().response();
 
     }
@@ -48,9 +52,10 @@ public class PlaylistAPI {
 
         return given(SpecBuilder.getRequestSpec()).
                 auth().oauth2(TokenManager.getToken()).
-                when().
-                get(Routes.PLAYLISTS + "/sendid").
-                then().spec(SpecBuilder.getResponseSpec()).
+                config(config.logConfig(LogConfig.logConfig().blacklistHeader("access_token"))).
+        when().
+                get(Routes.PLAYLISTS + "/" + PlaylistID ).
+        then().spec(SpecBuilder.getResponseSpec()).
                 assertThat().statusCode(200).
                 extract().response();
 
@@ -62,9 +67,10 @@ public class PlaylistAPI {
         return given(SpecBuilder.getRequestSpec()).
                 body(requestPlaylist).
                 auth().oauth2(TokenManager.getToken()).
-                when().
-                put(Routes.PLAYLISTS + "/sendid").
-                then().spec(SpecBuilder.getResponseSpec()).
+                config(config.logConfig(LogConfig.logConfig().blacklistHeader("access_token"))).
+        when().
+                put( Routes.PLAYLISTS + "/" + PlaylistID).
+        then().spec(SpecBuilder.getResponseSpec()).
                 extract().response();
 
     }

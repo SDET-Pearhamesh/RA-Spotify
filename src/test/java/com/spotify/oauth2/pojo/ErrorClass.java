@@ -15,10 +15,7 @@ import lombok.extern.jackson.Jacksonized;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorClass {
 
-
         @JsonProperty("error")
         private InnerError error;
-
-
 }
 

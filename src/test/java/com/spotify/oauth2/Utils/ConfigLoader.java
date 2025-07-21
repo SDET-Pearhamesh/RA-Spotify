@@ -44,10 +44,12 @@ public class ConfigLoader {
         else throw new RuntimeException("Specify the refresh_token in the config.property file");
     }
 
-    public String getUserID(){
-        String prop = properties.getProperty("user_id");
+    public String getExpiredToken(){
+        String prop = properties.getProperty("expired_token");
         if(prop != null) return prop;
-        else throw new RuntimeException("Specify the user_id in the config.property file");
+        else throw new RuntimeException("Specify the expired_token in the config.property file");
     }
+
+
 
 }

@@ -60,5 +60,8 @@ public class Playlist {
     @JsonProperty("uri")
     private String uri;
 
+    @JsonProperty("display_name")
+    private String display_name;
+
 
 }
