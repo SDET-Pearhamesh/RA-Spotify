@@ -1,11 +1,11 @@
 pipeline {
     agent any
 
-  tools{
-    jdk 'JDK-11'
-    maven 'Maven-3.8.6'
-  }
-  
+    tools{
+        jdk 'JDK-11'
+        maven 'Maven-3.8.6'
+    }
+    
     // Schedule to run everyday at 10 AM
     triggers {
         cron('0 10 * * *')
@@ -45,8 +45,8 @@ pipeline {
             }
             post {
                 always {
-                    // Archive test results
-                    publishTestResults testResultsPattern: 'target/surefire-reports/*.xml'
+                    // Archive test results - Use junit instead of publishTestResults
+                    junit testResultsPattern: 'target/surefire-reports/*.xml', allowEmptyResults: true
                 }
             }
         }
@@ -156,11 +156,7 @@ EOF
                 
                 echo "📧 Sending email notification..."
                 
-                // Prepare Jenkins log
-                def jenkinsLog = currentBuild.rawBuild.getLog(100).join('\n')
-                writeFile file: 'jenkins-build-log.txt', text: jenkinsLog
-                
-                // Send email with all details
+                // Send email with all details - Removed the problematic getLog() call
                 emailext (
                     subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${buildStatus}",
                     body: """
@@ -178,6 +174,7 @@ EOF
                                 <p><strong>Status:</strong> ${buildStatus}</p>
                                 <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
                                 <p><strong>Timestamp:</strong> ${BUILD_TIMESTAMP}</p>
+                                <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
                             </div>
                             
                             <div style="background: #e8f4f8; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
@@ -197,15 +194,14 @@ EOF
                             </div>
                             
                             <p style="text-align: center; margin-top: 30px; color: #666; font-size: 12px;">
-                                <em>Jenkins log attached | Automated CI/CD Pipeline</em>
+                                <em>Automated CI/CD Pipeline | Check Jenkins console for detailed logs</em>
                             </p>
                         </div>
                     </body>
                     </html>
                     """,
                     mimeType: 'text/html',
-                    to: 'prathamesh.d.ingale@gmail.com', 
-                    attachmentsPattern: 'jenkins-build-log.txt',
+                    to: 'prathamesh.d.ingale@gmail.com',
                     attachLog: true
                 )
             }
