@@ -101,6 +101,9 @@ pipeline {
                     echo "🚀 Hosting Allure reports on GitHub Pages..."
                 }
                 sh '''
+                    # Clean up any existing reports-repo directory
+                    rm -rf reports-repo
+                    
                     # Clone the reports repository
                     git clone ${GITHUB_REPO_URL} reports-repo
                     cd reports-repo
@@ -109,16 +112,16 @@ pipeline {
                     git config user.name "Jenkins"
                     git config user.email "jenkins@sdet-pearhamesh.com"
                     
-                    # Create directory structure if it doesn't exist
-                    mkdir -p latest
-                    mkdir -p archive/build-${BUILD_NUMBER}
+                    # Create docs directory structure for GitHub Pages
+                    mkdir -p docs/latest
+                    mkdir -p docs/archive/build-${BUILD_NUMBER}
                     
                     # Copy latest report to both locations
-                    cp -r ../allure-report/* latest/
-                    cp -r ../allure-report/* archive/build-${BUILD_NUMBER}/
+                    cp -r ../allure-report/* docs/latest/
+                    cp -r ../allure-report/* docs/archive/build-${BUILD_NUMBER}/
                     
                     # Create simple index.html for navigation
-                    cat > index.html << EOF
+                    cat > docs/index.html << EOF
 <!DOCTYPE html>
 <html>
 <head>
@@ -145,17 +148,37 @@ pipeline {
         <p style="text-align: center; margin-top: 30px; color: #666;">
             <strong>URL Pattern:</strong> archive/build-{BUILD_NUMBER}/index.html
         </p>
+        <div style="margin-top: 30px;">
+            <h3>Available Reports:</h3>
+            <ul>
+EOF
+                    
+                    # List all available build reports
+                    for build_dir in docs/archive/build-*; do
+                        if [ -d "$build_dir" ]; then
+                            build_num=$(basename "$build_dir" | sed 's/build-//')
+                            echo "                <li><a href=\"archive/build-$build_num/index.html\">Build #$build_num</a></li>" >> docs/index.html
+                        fi
+                    done
+                    
+                    cat >> docs/index.html << EOF
+            </ul>
+        </div>
     </div>
 </body>
 </html>
 EOF
                     
                     # Clean up old archives (keep only last 30)
-                    ls -1 archive/ | grep "build-" | sort -V | head -n -30 | xargs -I {} rm -rf archive/{}
+                    if [ -d "docs/archive" ]; then
+                        ls -1 docs/archive/ | grep "build-" | sort -V | head -n -30 | xargs -I {} rm -rf docs/archive/{}
+                    fi
                     
-                    # Commit and push changes
+                    # Add all files and commit
                     git add .
-                    git commit -m "Update reports - Build #${BUILD_NUMBER}" || echo "No changes to commit"
+                    git commit -m "Update reports - Build #${BUILD_NUMBER} [$(date '+%Y-%m-%d %H:%M:%S')]" || echo "No changes to commit"
+                    
+                    # Push to main branch
                     git push origin main
                 '''
             }
