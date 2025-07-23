@@ -4,7 +4,6 @@ pipeline {
     tools{
         jdk 'JDK-11'
         maven 'Maven-3.8.6'
-        allure 'Allure-2.24.0' // Add this if you configure Allure as a tool
     }
     
     // Schedule to run everyday at 10 AM
@@ -58,6 +57,16 @@ pipeline {
                     echo "📊 Generating Allure reports..."
                 }
                 sh '''
+                    # Install Allure if not present
+                    if ! command -v allure &> /dev/null; then
+                        echo "Installing Allure..."
+                        # Use curl instead of wget for macOS compatibility
+                        curl -L -o allure-2.24.0.tgz https://github.com/allure-framework/allure2/releases/download/2.24.0/allure-2.24.0.tgz
+                        tar -xzf allure-2.24.0.tgz
+                        # Verify installation
+                        ./allure-2.24.0/bin/allure --version
+                    fi
+                    
                     # Check if allure-results directory exists
                     if [ ! -d "allure-results" ]; then
                         echo "Warning: allure-results directory not found. Creating empty directory..."
@@ -65,8 +74,14 @@ pipeline {
                         echo "No test results available" > allure-results/empty.txt
                     fi
                     
-                    # Generate report using allure (configured as tool or system installed)
-                    allure generate allure-results --clean -o allure-report
+                    # Generate report using the installed allure or system allure
+                    if [ -d "allure-2.24.0" ]; then
+                        echo "Using downloaded Allure..."
+                        ./allure-2.24.0/bin/allure generate allure-results --clean -o allure-report
+                    else
+                        echo "Using system Allure..."
+                        allure generate allure-results --clean -o allure-report
+                    fi
                 '''
                 
                 // Publish Allure report in Jenkins
