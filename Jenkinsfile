@@ -45,8 +45,8 @@ pipeline {
             }
             post {
                 always {
-                    // Archive test results - Use junit instead of publishTestResults
-                    junit testResultsPattern: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                    // Archive test results - Use junit with correct parameter name
+                    junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
                 }
             }
         }
@@ -156,7 +156,7 @@ EOF
                 
                 echo "📧 Sending email notification..."
                 
-                // Send email with all details - Removed the problematic getLog() call
+                // Send email with all details
                 emailext (
                     subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${buildStatus}",
                     body: """
