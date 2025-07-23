@@ -4,6 +4,7 @@ pipeline {
     tools{
         jdk 'JDK-11'
         maven 'Maven-3.8.6'
+        allure 'Allure-2.24.0' // Add this if you configure Allure as a tool
     }
     
     // Schedule to run everyday at 10 AM
@@ -57,15 +58,14 @@ pipeline {
                     echo "📊 Generating Allure reports..."
                 }
                 sh '''
-                    # Install Allure if not present
-                    if ! command -v allure &> /dev/null; then
-                        echo "Installing Allure..."
-                        wget -q https://github.com/allure-framework/allure2/releases/download/2.24.0/allure-2.24.0.tgz
-                        tar -xzf allure-2.24.0.tgz
-                        export PATH=$PATH:$(pwd)/allure-2.24.0/bin
+                    # Check if allure-results directory exists
+                    if [ ! -d "allure-results" ]; then
+                        echo "Warning: allure-results directory not found. Creating empty directory..."
+                        mkdir -p allure-results
+                        echo "No test results available" > allure-results/empty.txt
                     fi
                     
-                    # Generate report
+                    # Generate report using allure (configured as tool or system installed)
                     allure generate allure-results --clean -o allure-report
                 '''
                 
