@@ -45,6 +45,7 @@ A comprehensive REST Assured test automation framework for Spotify Web API, feat
    # Update src/main/resources/config.properties with your Spotify credentials
    client_id=your_client_id
    client_secret=your_client_secret
+   refersh token etc...
    ```
 
 4. **Run tests**
