@@ -149,68 +149,61 @@ pipeline {
                 echo "Archive Report URL: ${archiveUrl}"
             }
             
-            // Send email with all details
-            emailext (
-                subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${currentBuild.result ?: 'SUCCESS'}",
-                body: """
-                <html>
-                <body style="font-family: Arial, sans-serif;">
-                    <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px;">
-                        <h2 style="color: ${(currentBuild.result ?: 'SUCCESS') == 'SUCCESS' ? '#1db954' : '#e22134'}; text-align: center;">
-                            ${(currentBuild.result ?: 'SUCCESS') == 'SUCCESS' ? '✅' : '❌'} Spotify API Tests - ${currentBuild.result ?: 'SUCCESS'}
-                        </h2>
-                        
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-                            <h3>Build Details</h3>
-                            <p><strong>Job:</strong> ${JOB_NAME}</p>
-                            <p><strong>Build:</strong> #${BUILD_NUMBER}</p>
-                            <p><strong>Status:</strong> ${currentBuild.result ?: 'SUCCESS'}</p>
-                            <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
-                            <p><strong>Timestamp:</strong> ${BUILD_TIMESTAMP}</p>
-                            <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                        </div>
-                        
-                        <div style="background: #e8f4f8; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
-                            <h3>📊 Test Reports</h3>
-                            <a href="${GITHUB_PAGES_URL}/latest/" style="display: inline-block; margin: 10px; padding: 12px 20px; background: #1db954; color: white; text-decoration: none; border-radius: 4px;">
-                                🔗 Latest Report
-                            </a>
-                            <a href="${GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/" style="display: inline-block; margin: 10px; padding: 12px 20px; background: #007cba; color: white; text-decoration: none; border-radius: 4px;">
-                                🏗️ Build #${BUILD_NUMBER} Report
-                            </a>
-                        </div>
-                        
-                        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <p><strong>Quick Access:</strong></p>
-                            <p>Latest: <code>${GITHUB_PAGES_URL}/latest/</code></p>
-                            <p>This Build: <code>${GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/</code></p>
-                            <p><strong>Pattern for Old Reports:</strong> <code>${GITHUB_PAGES_URL}/archive/build-{BUILD_NUMBER}/</code></p>
-                        </div>
-                        
-                        <p style="text-align: center; margin-top: 30px; color: #666; font-size: 12px;">
-                            <em>Automated CI/CD Pipeline | Check Jenkins console for detailed logs</em>
-                        </p>
-                    </div>
-                </body>
-                </html>
-                """,
-                mimeType: 'text/html',
-                to: 'prathamesh.d.ingale@gmail.com',
-                attachLog: true,
-                recipientProviders: [
-                    [$class: 'CulpritsRecipientProvider'],
-                    [$class: 'DevelopersRecipientProvider'],
-                    [$class: 'RequesterRecipientProvider']
-                ]
-            )
+            // Send email with all details using basic mail step first
+            try {
+                emailext (
+                    subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${currentBuild.result ?: 'SUCCESS'}",
+                    body: """Build Status: ${currentBuild.result ?: 'SUCCESS'}
+Job: ${JOB_NAME}
+Build: #${BUILD_NUMBER}
+Duration: ${currentBuild.durationString}
+Timestamp: ${BUILD_TIMESTAMP}
+
+📊 Test Reports:
+Latest Report: ${GITHUB_PAGES_URL}/latest/
+Build #${BUILD_NUMBER} Report: ${GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/
+
+Build URL: ${BUILD_URL}
+                    """,
+                    to: 'prathamesh.d.ingale@gmail.com',
+                    from: 'jenkins@sdet-pearhamesh.com',
+                    replyTo: 'prathamesh.d.ingale@gmail.com'
+                )
+                echo "📧 EmailExt sent successfully"
+            } catch (Exception e) {
+                echo "❌ EmailExt failed: ${e.getMessage()}"
+                
+                // Fallback to basic mail
+                try {
+                    mail (
+                        subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${currentBuild.result ?: 'SUCCESS'}",
+                        body: """Build Status: ${currentBuild.result ?: 'SUCCESS'}
+Job: ${JOB_NAME}  
+Build: #${BUILD_NUMBER}
+Duration: ${currentBuild.durationString}
+
+📊 Latest Report: ${GITHUB_PAGES_URL}/latest/
+🏗️ Build Report: ${GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/
+
+Build URL: ${BUILD_URL}
+                        """,
+                        to: 'prathamesh.d.ingale@gmail.com'
+                    )
+                    echo "📧 Basic mail sent successfully"
+                } catch (Exception e2) {
+                    echo "❌ Basic mail also failed: ${e2.getMessage()}"
+                }
+            }
         }
         
         success {
             echo "✅ Pipeline completed successfully!"
+            echo "📧 SUCCESS: Email should have been sent to prathamesh.d.ingale@gmail.com"
         }
         
         failure {
             echo "❌ Pipeline failed!"
+            echo "📧 FAILURE: Email should have been sent to prathamesh.d.ingale@gmail.com"
         }
     }
 }
