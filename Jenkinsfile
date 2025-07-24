@@ -138,7 +138,7 @@ pipeline {
     
     post {
         always {
-            script { // <--- Added script block here
+            script {
                 def buildStatus = currentBuild.result ?: 'SUCCESS'
                 def reportUrl = "${env.GITHUB_PAGES_URL}/latest/"
                 def archiveUrl = "${env.GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/"
@@ -148,11 +148,9 @@ pipeline {
                 echo "Latest Report URL: ${reportUrl}"
                 echo "Archive Report URL: ${archiveUrl}"
                 
-                // Send email with all details using basic mail step first
-                try {
-                    emailext (
-                        subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${currentBuild.result ?: 'SUCCESS'}",
-                        body: """Build Status: ${currentBuild.result ?: 'SUCCESS'}
+                emailext (
+                    subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${currentBuild.result ?: 'SUCCESS'}",
+                    body: """Build Status: ${currentBuild.result ?: 'SUCCESS'}
 Job: ${JOB_NAME}
 Build: #${BUILD_NUMBER}
 Duration: ${currentBuild.durationString}
@@ -163,47 +161,20 @@ Latest Report: ${GITHUB_PAGES_URL}/latest/
 Build #${BUILD_NUMBER} Report: ${GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/
 
 Build URL: ${BUILD_URL}
-                        """,
-                        to: 'prathamesh.d.ingale@gmail.com',
-                        from: 'jenkins@sdet-pearhamesh.com',
-                        replyTo: 'prathamesh.d.ingale@gmail.com'
-                    )
-                    echo "📧 EmailExt sent successfully"
-                } catch (Exception e) {
-                    echo "❌ EmailExt failed: ${e.getMessage()}"
-                    
-                    // Fallback to basic mail
-                    try {
-                        mail (
-                            subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${currentBuild.result ?: 'SUCCESS'}",
-                            body: """Build Status: ${currentBuild.result ?: 'SUCCESS'}
-Job: ${JOB_NAME}  
-Build: #${BUILD_NUMBER}
-Duration: ${currentBuild.durationString}
-
-📊 Latest Report: ${GITHUB_PAGES_URL}/latest/
-🏗️ Build Report: ${GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/
-
-Build URL: ${BUILD_URL}
-                            """,
-                            to: 'prathamesh.d.ingale@gmail.com'
-                        )
-                        echo "📧 Basic mail sent successfully"
-                    } catch (Exception e2) {
-                        echo "❌ Basic mail also failed: ${e2.getMessage()}"
-                    }
-                }
-            } // <--- Closed script block here
+                    """,
+                    to: 'prathamesh.d.ingale@gmail.com',
+                    from: 'jenkins@sdet-pearhamesh.com',
+                    replyTo: 'prathamesh.d.ingale@gmail.com'
+                )
+            }
         }
         
         success {
             echo "✅ Pipeline completed successfully!"
-            echo "📧 SUCCESS: Email should have been sent to prathamesh.d.ingale@gmail.com"
         }
         
         failure {
             echo "❌ Pipeline failed!"
-            echo "📧 FAILURE: Email should have been sent to prathamesh.d.ingale@gmail.com"
         }
     }
 }
