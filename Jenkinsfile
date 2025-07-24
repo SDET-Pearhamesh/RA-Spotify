@@ -112,62 +112,13 @@ pipeline {
                     git config user.name "Jenkins"
                     git config user.email "jenkins@sdet-pearhamesh.com"
                     
-                    # Create docs directory structure for GitHub Pages
+                    # Create docs directory structure for GitHub Pages (without dashboard)
                     mkdir -p docs/latest
                     mkdir -p docs/archive/build-${BUILD_NUMBER}
                     
                     # Copy latest report to both locations
                     cp -r ../allure-report/* docs/latest/
                     cp -r ../allure-report/* docs/archive/build-${BUILD_NUMBER}/
-                    
-                    # Create simple index.html for navigation
-                    cat > docs/index.html << EOF
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Spotify REST API Test Reports</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
-        h1 { color: #1db954; text-align: center; }
-        .info { background: #f0f0f0; padding: 15px; border-radius: 5px; margin: 20px 0; }
-        .link { display: inline-block; margin: 10px 5px; padding: 12px 20px; background: #1db954; color: white; text-decoration: none; border-radius: 4px; }
-        .link:hover { background: #1ed760; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🎵 Spotify REST API Test Reports</h1>
-        <div class="info">
-            <strong>Latest Build:</strong> #${BUILD_NUMBER} | <strong>Generated:</strong> ${BUILD_TIMESTAMP}
-        </div>
-        <div style="text-align: center;">
-            <a href="latest/index.html" class="link">📊 Latest Report</a>
-            <a href="archive/build-${BUILD_NUMBER}/index.html" class="link">🏗️ Build #${BUILD_NUMBER}</a>
-        </div>
-        <p style="text-align: center; margin-top: 30px; color: #666;">
-            <strong>URL Pattern:</strong> archive/build-{BUILD_NUMBER}/index.html
-        </p>
-        <div style="margin-top: 30px;">
-            <h3>Available Reports:</h3>
-            <ul>
-EOF
-                    
-                    # List all available build reports
-                    for build_dir in docs/archive/build-*; do
-                        if [ -d "$build_dir" ]; then
-                            build_num=$(basename "$build_dir" | sed 's/build-//')
-                            echo "                <li><a href=\"archive/build-$build_num/index.html\">Build #$build_num</a></li>" >> docs/index.html
-                        fi
-                    done
-                    
-                    cat >> docs/index.html << EOF
-            </ul>
-        </div>
-    </div>
-</body>
-</html>
-EOF
                     
                     # Clean up old archives (keep only last 30)
                     if [ -d "docs/archive" ]; then
@@ -193,56 +144,65 @@ EOF
                 def archiveUrl = "${env.GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/"
                 
                 echo "📧 Sending email notification..."
-                
-                // Send email with all details
-                emailext (
-                    subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${buildStatus}",
-                    body: """
-                    <html>
-                    <body style="font-family: Arial, sans-serif;">
-                        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px;">
-                            <h2 style="color: ${buildStatus == 'SUCCESS' ? '#1db954' : '#e22134'}; text-align: center;">
-                                ${buildStatus == 'SUCCESS' ? '✅' : '❌'} Spotify API Tests - ${buildStatus}
-                            </h2>
-                            
-                            <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-                                <h3>Build Details</h3>
-                                <p><strong>Job:</strong> ${JOB_NAME}</p>
-                                <p><strong>Build:</strong> #${BUILD_NUMBER}</p>
-                                <p><strong>Status:</strong> ${buildStatus}</p>
-                                <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
-                                <p><strong>Timestamp:</strong> ${BUILD_TIMESTAMP}</p>
-                                <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                            </div>
-                            
-                            <div style="background: #e8f4f8; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
-                                <h3>📊 Test Reports</h3>
-                                <a href="${reportUrl}" style="display: inline-block; margin: 10px; padding: 12px 20px; background: #1db954; color: white; text-decoration: none; border-radius: 4px;">
-                                    🔗 Latest Report
-                                </a>
-                                <a href="${archiveUrl}" style="display: inline-block; margin: 10px; padding: 12px 20px; background: #007cba; color: white; text-decoration: none; border-radius: 4px;">
-                                    🏗️ Build #${BUILD_NUMBER} Report
-                                </a>
-                            </div>
-                            
-                            <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                                <p><strong>Quick Access:</strong></p>
-                                <p>Latest: <code>${reportUrl}</code></p>
-                                <p>This Build: <code>${archiveUrl}</code></p>
-                            </div>
-                            
-                            <p style="text-align: center; margin-top: 30px; color: #666; font-size: 12px;">
-                                <em>Automated CI/CD Pipeline | Check Jenkins console for detailed logs</em>
-                            </p>
-                        </div>
-                    </body>
-                    </html>
-                    """,
-                    mimeType: 'text/html',
-                    to: 'prathamesh.d.ingale@gmail.com',
-                    attachLog: true
-                )
+                echo "Build Status: ${buildStatus}"
+                echo "Latest Report URL: ${reportUrl}"
+                echo "Archive Report URL: ${archiveUrl}"
             }
+            
+            // Send email with all details
+            emailext (
+                subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${currentBuild.result ?: 'SUCCESS'}",
+                body: """
+                <html>
+                <body style="font-family: Arial, sans-serif;">
+                    <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px;">
+                        <h2 style="color: ${(currentBuild.result ?: 'SUCCESS') == 'SUCCESS' ? '#1db954' : '#e22134'}; text-align: center;">
+                            ${(currentBuild.result ?: 'SUCCESS') == 'SUCCESS' ? '✅' : '❌'} Spotify API Tests - ${currentBuild.result ?: 'SUCCESS'}
+                        </h2>
+                        
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                            <h3>Build Details</h3>
+                            <p><strong>Job:</strong> ${JOB_NAME}</p>
+                            <p><strong>Build:</strong> #${BUILD_NUMBER}</p>
+                            <p><strong>Status:</strong> ${currentBuild.result ?: 'SUCCESS'}</p>
+                            <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
+                            <p><strong>Timestamp:</strong> ${BUILD_TIMESTAMP}</p>
+                            <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                        </div>
+                        
+                        <div style="background: #e8f4f8; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
+                            <h3>📊 Test Reports</h3>
+                            <a href="${GITHUB_PAGES_URL}/latest/" style="display: inline-block; margin: 10px; padding: 12px 20px; background: #1db954; color: white; text-decoration: none; border-radius: 4px;">
+                                🔗 Latest Report
+                            </a>
+                            <a href="${GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/" style="display: inline-block; margin: 10px; padding: 12px 20px; background: #007cba; color: white; text-decoration: none; border-radius: 4px;">
+                                🏗️ Build #${BUILD_NUMBER} Report
+                            </a>
+                        </div>
+                        
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <p><strong>Quick Access:</strong></p>
+                            <p>Latest: <code>${GITHUB_PAGES_URL}/latest/</code></p>
+                            <p>This Build: <code>${GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/</code></p>
+                            <p><strong>Pattern for Old Reports:</strong> <code>${GITHUB_PAGES_URL}/archive/build-{BUILD_NUMBER}/</code></p>
+                        </div>
+                        
+                        <p style="text-align: center; margin-top: 30px; color: #666; font-size: 12px;">
+                            <em>Automated CI/CD Pipeline | Check Jenkins console for detailed logs</em>
+                        </p>
+                    </div>
+                </body>
+                </html>
+                """,
+                mimeType: 'text/html',
+                to: 'prathamesh.d.ingale@gmail.com',
+                attachLog: true,
+                recipientProviders: [
+                    [$class: 'CulpritsRecipientProvider'],
+                    [$class: 'DevelopersRecipientProvider'],
+                    [$class: 'RequesterRecipientProvider']
+                ]
+            )
         }
         
         success {
