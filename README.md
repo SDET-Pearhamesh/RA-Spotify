@@ -60,23 +60,34 @@ A comprehensive REST Assured test automation framework for Spotify Web API, feat
 ## 🏗️ Project Architecture
 
 ```
-📦 src/
- ├── 📂 main/java/com/spotify/oauth2/
- │   ├── 🔌 api/
- │   │   ├── Routes.java
- │   │   ├── SpecBuilder.java
- │   │   ├── StatusCode.java
- │   │   └── TokenManager.java
- │   ├── 📋 pojo/
- │   └── 🛠️ utils/
- │       ├── ConfigLoader.java
- │       ├── JavaFakerUtils.java
- │       ├── PlaylistAPI.java
- │       └── PropertyUtil.java
- └── 📂 test/java/com/spotify/oauth2/
-     └── 🧪 tests/
-         ├── BaseTest.java
-         └── PlaylistTests.java
+📦 Project Root/
+ ├── 📂 .idea/
+ ├── 📂 allure-results/
+ ├── 📂 src/
+ │   ├── 📂 main/java/com/spotify/oauth2/
+ │   │   ├── 🔌 api/
+ │   │   │   ├── Routes.java
+ │   │   │   ├── SpecBuilder.java
+ │   │   │   ├── StatusCode.java
+ │   │   │   └── TokenManager.java
+ │   │   ├── 📋 pojo/
+ │   │   └── 🛠️ utils/
+ │   │       ├── ConfigLoader.java
+ │   │       ├── JavaFakerUtils.java
+ │   │       ├── PlaylistAPI.java
+ │   │       └── PropertyUtil.java
+ │   └── 📂 test/java/com/spotify/oauth2/
+ │       └── 🧪 tests/
+ │           ├── BaseTest.java
+ │           └── PlaylistTests.java
+ ├── 📂 resources/
+ │   └── config.properties
+ ├── 📄 .gitignore
+ ├── 📄 Jenkinsfile
+ ├── 📄 README.md
+ ├── 📄 pom.xml
+ └── 📄 testng.xml
+
 ```
 
 ## 🔧 Tech Stack
