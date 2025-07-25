@@ -146,5 +146,3 @@ allure serve allure-results
 # Clean and generate fresh report
 allure generate allure-results --clean -o allure-report
 ```
-
-**Made with ❤️ for API Test Automation**
