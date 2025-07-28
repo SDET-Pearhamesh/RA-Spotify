@@ -1,6 +1,15 @@
 pipeline {
     agent any
 
+    // Add parameters similar to first pipeline
+    parameters {
+        booleanParam(
+            name: 'SEND_EMAIL',
+            defaultValue: true,
+            description: 'Send email notification after build'
+        )
+    }
+
     tools{
         jdk 'JDK-11'
         maven 'Maven-3.8.6'
@@ -139,33 +148,47 @@ pipeline {
     post {
         always {
             script {
-                def buildStatus = currentBuild.result ?: 'SUCCESS'
-                def reportUrl = "${env.GITHUB_PAGES_URL}/latest/"
-                def archiveUrl = "${env.GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/"
-                
-                echo "📧 Sending email notification..."
-                echo "Build Status: ${buildStatus}"
-                echo "Latest Report URL: ${reportUrl}"
-                echo "Archive Report URL: ${archiveUrl}"
-                
-                emailext (
-                    subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${currentBuild.result ?: 'SUCCESS'}",
-                    body: """Build Status: ${currentBuild.result ?: 'SUCCESS'}
-Job: ${JOB_NAME}
-Build: #${BUILD_NUMBER}
-Duration: ${currentBuild.durationString}
-Timestamp: ${BUILD_TIMESTAMP}
-
-📊 Test Reports:
-Latest Report: ${GITHUB_PAGES_URL}/latest/
-Build #${BUILD_NUMBER} Report: ${GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/
-
-Build URL: ${BUILD_URL}
-                    """,
-                    to: 'prathamesh.d.ingale@gmail.com',
-                    from: 'jenkins@sdet-pearhamesh.com',
-                    replyTo: 'prathamesh.d.ingale@gmail.com'
-                )
+                // Only send email if parameter is true (similar to first pipeline)
+                if (params.SEND_EMAIL == true) {
+                    def buildStatus = currentBuild.result ?: 'SUCCESS'
+                    def reportUrl = "${env.GITHUB_PAGES_URL}/latest/"
+                    def archiveUrl = "${env.GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/"
+                    
+                    echo "📧 Sending email notification..."
+                    echo "Build Status: ${buildStatus}"
+                    echo "Latest Report URL: ${reportUrl}"
+                    echo "Archive Report URL: ${archiveUrl}"
+                    
+                    emailext (
+                        subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${buildStatus}",
+                        body: """
+                        <p>Hi Team,</p>
+                        <p>This email provides the Spotify API automation build report.
+                        Our automated test suite has completed its run, critically assessing the API's health and functionality.</p>
+                        
+                        <h2>Jenkins Build Report</h2>
+                        <p><b>Job:</b> ${JOB_NAME}</p>
+                        <p><b>Build Status:</b> ${buildStatus}</p>
+                        <p><b>Build Number:</b> #${BUILD_NUMBER}</p>
+                        <p><b>Duration:</b> ${currentBuild.durationString}</p>
+                        <p><b>Timestamp:</b> ${BUILD_TIMESTAMP}</p>
+                        
+                        <h3>📊 Test Reports:</h3>
+                        <p><b>Latest Report:</b> <a href="${reportUrl}">View Latest Report</a></p>
+                        <p><b>Build #${BUILD_NUMBER} Report:</b> <a href="${archiveUrl}">View Build Report</a></p>
+                        
+                        <p><b>Build URL:</b> <a href="${BUILD_URL}">View Jenkins Build</a></p>
+                        
+                        <br>
+                        <p>Regards, <br> SDET QA Team</p>
+                        """,
+                        to: 'prathamesh.d.ingale@gmail.com',
+                        mimeType: 'text/html',  // This is crucial for HTML emails
+                        attachLog: true
+                    )
+                } else {
+                    echo "📧 Email notification skipped (SEND_EMAIL parameter is false)"
+                }
             }
         }
         
