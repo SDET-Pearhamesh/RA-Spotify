@@ -1,14 +1,7 @@
 pipeline {
     agent any
 
-    // Add parameters similar to first pipeline
-    parameters {
-        booleanParam(
-            name: 'SEND_EMAIL',
-            defaultValue: true,
-            description: 'Send email notification after build'
-        )
-    }
+
 
     tools{
         jdk 'JDK-11'
@@ -148,48 +141,43 @@ pipeline {
     post {
         always {
             script {
-                // Only send email if parameter is true (similar to first pipeline)
-                if (params.SEND_EMAIL == true) {
-                    def buildStatus = currentBuild.result ?: 'SUCCESS'
-                    def reportUrl = "${env.GITHUB_PAGES_URL}/latest/"
-                    def archiveUrl = "${env.GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/"
-                    
-                    echo "📧 Sending email notification..."
-                    echo "Build Status: ${buildStatus}"
-                    echo "Latest Report URL: ${reportUrl}"
-                    echo "Archive Report URL: ${archiveUrl}"
-                    
-                    emailext (
-                        subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${buildStatus}",
-                        body: """
-                        <p>Hi Team,</p>
-                        <p>This email provides the Spotify API automation build report.
-                        Our automated test suite has completed its run, critically assessing the API's health and functionality.</p>
-                        
-                        <h2>Jenkins Build Report</h2>
-                        <p><b>Job:</b> ${JOB_NAME}</p>
-                        <p><b>Build Status:</b> ${buildStatus}</p>
-                        <p><b>Build Number:</b> #${BUILD_NUMBER}</p>
-                        <p><b>Duration:</b> ${currentBuild.durationString}</p>
-                        <p><b>Timestamp:</b> ${BUILD_TIMESTAMP}</p>
-                        
-                        <h3>📊 Test Reports:</h3>
-                        <p><b>Latest Report:</b> <a href="${reportUrl}">View Latest Report</a></p>
-                        <p><b>Build #${BUILD_NUMBER} Report:</b> <a href="${archiveUrl}">View Build Report</a></p>
-                        
-                        <p><b>Build URL:</b> <a href="${BUILD_URL}">View Jenkins Build</a></p>
-                        
-                        <br>
-                        <p>Regards, <br> SDET QA Team</p>
-                        """,
-                        to: 'prathamesh.d.ingale@gmail.com',
-                        mimeType: 'text/html',  // This is crucial for HTML emails
-                        attachLog: true
-                    )
-                } else {
-                    echo "📧 Email notification skipped (SEND_EMAIL parameter is false)"
-                }
+                def buildStatus = currentBuild.result ?: 'SUCCESS'
+                def reportUrl = "${env.GITHUB_PAGES_URL}/latest/"
+                def archiveUrl = "${env.GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/"
+                
+                echo "📧 Sending email notification..."
+                echo "Build Status: ${buildStatus}"
+                echo "Latest Report URL: ${reportUrl}"
+                echo "Archive Report URL: ${archiveUrl}"
             }
+            
+            emailext(
+                to: 'prathamesh.d.ingale@gmail.com',
+                subject: "🎵 Spotify API Test Results - Build #${BUILD_NUMBER} - ${currentBuild.result ?: 'SUCCESS'}",
+                body: """
+                <p>Hi Team,</p>
+                <p>This email provides the Spotify API automation build report.
+                Our automated test suite has completed its run, critically assessing the API's health and functionality.</p>
+                
+                <h2>Jenkins Build Report</h2>
+                <p><b>Job:</b> ${JOB_NAME}</p>
+                <p><b>Build Status:</b> ${currentBuild.result ?: 'SUCCESS'}</p>
+                <p><b>Build Number:</b> #${BUILD_NUMBER}</p>
+                <p><b>Duration:</b> ${currentBuild.durationString}</p>
+                <p><b>Timestamp:</b> ${BUILD_TIMESTAMP}</p>
+                
+                <h3>📊 Test Reports:</h3>
+                <p><b>Latest Report:</b> <a href="${env.GITHUB_PAGES_URL}/latest/">View Latest Report</a></p>
+                <p><b>Build #${BUILD_NUMBER} Report:</b> <a href="${env.GITHUB_PAGES_URL}/archive/build-${BUILD_NUMBER}/">View Build Report</a></p>
+                
+                <p><b>Build URL:</b> <a href="${BUILD_URL}">View Jenkins Build</a></p>
+                
+                <br>
+                <p>Regards, <br> SDET QA Team</p>
+                """,
+                mimeType: 'text/html',
+                attachLog: true
+            )
         }
         
         success {
